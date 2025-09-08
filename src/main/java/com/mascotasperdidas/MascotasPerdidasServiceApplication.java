@@ -3,11 +3,14 @@ package com.mascotasperdidas;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import java.util.TimeZone;
+
 @SpringBootApplication
 public class MascotasPerdidasServiceApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(MascotasPerdidasServiceApplication.class, args);
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+        SpringApplication.run(MascotasPerdidasServiceApplication.class, args);
 	}
 
 }

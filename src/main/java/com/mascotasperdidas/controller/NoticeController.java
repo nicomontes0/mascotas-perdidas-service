@@ -9,6 +9,9 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,14 +37,13 @@ public class NoticeController {
 
     @GetMapping
     public Page<Notice> getNotices(
-            @RequestParam(name = "page", required = false, defaultValue = "0") int page,
-            @RequestParam(name = "size", required = false, defaultValue = "10") int size,
-            @RequestParam Map<String,String> queryParams
+            @RequestParam Map<String,String> queryParams,
+            @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         log.info("Se llama a /api/notices con queryParams: {}", queryParams.toString());
         queryParams.keySet().removeAll(nonFilterKeys);
 
-        Page<Notice> reportPage = noticeService.get(page, size, queryParams);
+        Page<Notice> reportPage = noticeService.get(queryParams, pageable);
         log.info("Se obtiene la pagina de notices: {}", reportPage.getContent());
         return reportPage;
     }
@@ -65,11 +67,11 @@ public class NoticeController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> createNotice(@RequestBody NoticeRequestBody notice) {
+    public ResponseEntity<UUID> createNotice(@RequestBody NoticeRequestBody notice) {
         log.info("Se llama al servicio de creacion de un notice con body {}", notice);
         UUID id = noticeService.create(notice);
         log.info("Se ha creado el notice con id: {}", id);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body(id);
     }
 
     @PostMapping("/{id}/resolve")

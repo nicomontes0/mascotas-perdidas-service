@@ -1,9 +1,17 @@
 package com.mascotasperdidas.model.filters;
 
+import com.mascotasperdidas.utils.FiltersUtils;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.core.convert.ConversionService;
 
 import java.util.List;
 
@@ -22,6 +30,18 @@ public class StartsWithFilter implements Filter{
                 .key(key)
                 .value(values.get(0))
                 .build();
+    }
+
+    @Override
+    public Predicate toPredicate(Root<?> root, CriteriaQuery<?> query,
+                                 CriteriaBuilder cb, ConversionService conversionService) {
+        Path<?> path = FiltersUtils.getPath(root, key);
+        // aseguramos que es String en tiempo de ejecución
+        if (!String.class.equals(path.getJavaType())) {
+            throw new RuntimeException("El parametro no es string");
+        }
+        String pattern = value == null ? "" : value.toLowerCase() + "%";
+        return cb.like(cb.lower((Expression<String>) path), pattern);
     }
 
 

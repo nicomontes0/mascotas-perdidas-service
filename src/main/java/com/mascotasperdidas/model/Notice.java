@@ -1,5 +1,6 @@
 package com.mascotasperdidas.model;
 
+import com.mascotasperdidas.controller.model.NoticeRequestBody;
 import com.mascotasperdidas.model.enums.ReportStatus;
 import com.mascotasperdidas.model.enums.NoticeType;
 import com.mascotasperdidas.model.enums.Species;
@@ -18,7 +19,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcType;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 import org.hibernate.type.SqlTypes;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -52,16 +55,19 @@ public class Notice {
     private String description;
 
     @Enumerated(EnumType.STRING)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     @Column(name="species", nullable = false, columnDefinition = "species_enum")
     private Species specie;
 
     private String location;
 
     @Enumerated(EnumType.STRING)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     @Column(name = "report_type", nullable = false, columnDefinition = "report_type_enum")
     private NoticeType noticeType;
 
     @Enumerated(EnumType.STRING)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     @Column(columnDefinition = "report_status_enum")
     private ReportStatus status;
 
@@ -83,7 +89,15 @@ public class Notice {
         if (id == null) id = UUID.randomUUID();
         if (createdAt == null) createdAt = OffsetDateTime.now();
         if (status == null) status = ReportStatus.abierto;
-        if (anonUserToken == null) anonUserToken = UUID.randomUUID();
         if (isReported == null) isReported = false;
+    }
+
+    public void update(NoticeRequestBody noticeRequestBody) {
+        this.setTitle(noticeRequestBody.getTitle());
+        this.setDescription(noticeRequestBody.getDescription());
+        this.setSpecie(Species.valueOf(noticeRequestBody.getSpecie()));
+        this.setLocation(noticeRequestBody.getLocation());
+        this.setNoticeType(NoticeType.valueOf(noticeRequestBody.getNoticeType()));
+        this.setContactInfo(noticeRequestBody.getContactInfo());
     }
 }
