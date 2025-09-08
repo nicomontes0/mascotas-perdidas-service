@@ -6,7 +6,6 @@ import com.mascotasperdidas.model.enums.NoticeType;
 import com.mascotasperdidas.model.enums.Species;
 import lombok.Data;
 
-import java.util.List;
 import java.util.Map;
 
 @Data

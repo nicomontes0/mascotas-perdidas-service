@@ -38,7 +38,7 @@ import static com.mascotasperdidas.utils.JwtUtils.extractJwtFromHeader;
 @Slf4j
 public class NoticeController {
 
-    private static final Set<String> nonFilterKeys = Set.of("page", "size");
+    private static final Set<String> nonFilterKeys = Set.of("page", "size", "sort");
     private final NoticeService noticeService;
     private final TokenService tokenService;
 
