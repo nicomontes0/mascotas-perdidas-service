@@ -1,4 +1,4 @@
-FROM gradle:8.3-jdk17 AS build
+FROM eclipse-temurin:24-jdk AS build
 WORKDIR /workspace
 
 COPY gradle gradle
@@ -12,12 +12,12 @@ RUN ./gradlew --version || true
 RUN ./gradlew --no-daemon dependencies || true
 
 COPY src ./src
-RUN ./gradlew -x test bootJar --no-daemon
+RUN ./gradlew clean build -x test --info --stacktrace --no-daemon
 
-FROM eclipse-temurin:17-jre AS runtime
+FROM eclipse-temurin:24-jre AS runtime
 WORKDIR /app
 
-COPY --from=build /workspace/build/libs/mascotas-perdidas-service-0.1.1-SNAPSHOT.jar /app/app.jar
+COPY --from=build /workspace/build/libs/*.jar /app/app.jar
 
 EXPOSE 10000
 
