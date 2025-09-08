@@ -14,6 +14,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Array;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -41,6 +44,12 @@ public class NoticeImage {
 
     @Column(name = "is_primary")
     private Boolean isPrimary;
+
+    @JdbcTypeCode(SqlTypes.VECTOR)
+    @Array(length = 1280)
+    @Column(columnDefinition = "vector(1280)")
+    @JsonIgnore
+    private float[] vector;
 
     @Column(name = "created_at", columnDefinition = "timestamptz")
     private OffsetDateTime createdAt;
