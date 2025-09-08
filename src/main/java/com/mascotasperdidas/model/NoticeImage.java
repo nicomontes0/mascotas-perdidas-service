@@ -1,5 +1,6 @@
 package com.mascotasperdidas.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -32,6 +33,7 @@ public class NoticeImage {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "report_id", nullable = false)
+    @JsonIgnore
     private Notice notice;
 
     @Column(name = "image_url", nullable = false)

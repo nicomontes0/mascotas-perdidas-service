@@ -21,3 +21,8 @@ spring:
             time_zone: UTC
           format_sql: true
           dialect: org.hibernate.dialect.PostgreSQLDialect
+
+cloudinary:
+  name: "dtlfboijw"
+  key: ${CLOUDINARY_KEY}
+  api_secret: ${CLOUDINARY_API_SECRET}

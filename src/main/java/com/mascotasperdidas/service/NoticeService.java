@@ -5,7 +5,6 @@ import com.mascotasperdidas.model.Notice;
 import com.mascotasperdidas.model.enums.ReportStatus;
 import com.mascotasperdidas.model.filters.Filter;
 import com.mascotasperdidas.model.filters.FilterBuilder;
-import com.mascotasperdidas.repositories.NoticeImageRepository;
 import com.mascotasperdidas.repositories.NoticeRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +12,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -23,13 +23,13 @@ import java.util.UUID;
 public class NoticeService {
 
     private final NoticeRepository noticeRepository;
-    private final NoticeImageRepository noticeImageRepository;
     private final ConversionService conversionService;
+    private final NoticeImageService noticeImageService;
 
-    public NoticeService(NoticeRepository noticeRepository, NoticeImageRepository noticeImageRepository, ConversionService conversionService) {
+    public NoticeService(NoticeRepository noticeRepository, ConversionService conversionService, NoticeImageService noticeImageService) {
         this.noticeRepository = noticeRepository;
-        this.noticeImageRepository = noticeImageRepository;
         this.conversionService = conversionService;
+        this.noticeImageService = noticeImageService;
     }
 
     public Page<Notice> get(Map<String, String> params, Pageable pageable) {
@@ -50,21 +50,22 @@ public class NoticeService {
     }
 
     @Transactional
-    public void update(UUID id, NoticeRequestBody noticeRequestBody) {
+    public void update(UUID id, NoticeRequestBody noticeRequestBody, List<MultipartFile> newImages) {
         checkTokenIfIsCorrect();
         Notice existingNotice = getNotice(id);
         existingNotice.update(noticeRequestBody);
         noticeRepository.save(existingNotice);
-        if (!noticeRequestBody.getImages().isEmpty()) {
-            noticeRequestBody.getImages().forEach(this::saveImages);
+        if (!newImages.isEmpty()) {
+            //TODO QUE HACEMOS CON IMAGENES ANTERIORES
+            newImages.forEach(image -> noticeImageService.create(existingNotice, image));
         }
     }
 
     @Transactional
-    public UUID create(NoticeRequestBody noticeRequestBody) {
+    public UUID create(NoticeRequestBody noticeRequestBody, List<MultipartFile> images) {
         Notice notice = createNotice(noticeRequestBody);
-        if (!noticeRequestBody.getImages().isEmpty()) {
-            noticeRequestBody.getImages().forEach(this::saveImages);
+        if (!images.isEmpty()) {
+            images.forEach(image -> noticeImageService.create(notice, image));
         }
         generateToken();
         sendNotification();
@@ -81,10 +82,6 @@ public class NoticeService {
         Notice notice = getNotice(id);
         notice.setStatus(ReportStatus.resuelto);
         noticeRepository.save(notice);
-    }
-
-    private void saveImages(Object image) {
-        //TODO
     }
 
     private void generateToken() {

@@ -18,7 +18,6 @@ public class NoticeRequestBody {
     private String location;
     private String noticeType;
     private Map<String, String> contactInfo;
-    private List<Object> images;
 
     public Notice toDomain() {
         return Notice.builder()
