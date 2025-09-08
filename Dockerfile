@@ -3,6 +3,9 @@ WORKDIR /workspace
 
 COPY gradle gradle
 COPY gradlew .
+
+RUN chmod +x ./gradlew
+
 COPY build.gradle settings.gradle ./
 
 RUN ./gradlew --version || true
