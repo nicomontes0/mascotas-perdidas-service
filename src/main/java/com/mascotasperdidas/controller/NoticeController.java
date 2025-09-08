@@ -4,14 +4,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mascotasperdidas.controller.model.NoticeRequestBody;
 import com.mascotasperdidas.model.Notice;
+import com.mascotasperdidas.model.NoticeDTO;
 import com.mascotasperdidas.service.NoticeService;
+import com.mascotasperdidas.service.TokenService;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -23,12 +19,19 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
+import static com.mascotasperdidas.utils.JwtUtils.extractJwtFromHeader;
 
 @RestController
 @RequestMapping("/api/notices")
@@ -37,9 +40,11 @@ public class NoticeController {
 
     private static final Set<String> nonFilterKeys = Set.of("page", "size");
     private final NoticeService noticeService;
+    private final TokenService tokenService;
 
-    public NoticeController(NoticeService noticeService) {
+    public NoticeController(NoticeService noticeService, TokenService tokenService) {
         this.noticeService = noticeService;
+        this.tokenService = tokenService;
     }
 
     @GetMapping
@@ -65,10 +70,14 @@ public class NoticeController {
 
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> updateNotice(
+            @RequestHeader("Authorization") String authorization,
             @PathVariable("id") UUID id,
             @RequestPart("notice") String noticeJson,
             @RequestPart(value = "newImages", required = false) List<MultipartFile> newImages
     ) {
+        if (!isTokenValid(authorization)) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
         log.info("Se llama al servicio de actualización de un notice con id {} y body {}", id, noticeJson);
         try {
             noticeService.update(id, createNoticeRequestBody(noticeJson), newImages);
@@ -81,25 +90,41 @@ public class NoticeController {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<UUID> createNotice(
+    public ResponseEntity<NoticeDTO> createNotice(
             @RequestPart("notice") String noticeJson,
             @RequestPart(value = "images", required = false) List<MultipartFile> images
     ) {
         log.info("Se llama al servicio de creacion de un notice con body {}", noticeJson);
         try {
-            UUID id = noticeService.create(createNoticeRequestBody(noticeJson), images);
-            log.info("Se ha creado el notice con id: {}", id);
-            return ResponseEntity.status(HttpStatus.CREATED).body(id);
+            NoticeDTO response = noticeService.create(createNoticeRequestBody(noticeJson), images);
+            log.info("Se ha creado el notice {}", response);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (JsonProcessingException e) {
             return ResponseEntity.badRequest().build();
         }
     }
 
     @PostMapping("/{id}/resolve")
-    public ResponseEntity<Void> resolveNotice(@PathVariable UUID id) {
+    public ResponseEntity<Void> resolveNotice(
+            @RequestHeader("Authorization") String authorization,
+            @PathVariable UUID id) {
+        if (!isTokenValid(authorization)) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
         log.info("Se llama a /api/notices/{}/resolve", id);
         noticeService.resolve(id);
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
+    }
+
+    @PostMapping("/{id}/manage")
+    public ResponseEntity<?> manageAction(@PathVariable UUID id, @RequestHeader("Authorization") String authorization) {
+        return isTokenValid(authorization) ?
+                ResponseEntity.ok().build()
+                : ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+
+    private boolean isTokenValid(String authorization) {
+        return tokenService.validateTokenAndOwnership(extractJwtFromHeader(authorization));
     }
 
     private NoticeRequestBody createNoticeRequestBody(String noticeJson) throws JsonProcessingException {

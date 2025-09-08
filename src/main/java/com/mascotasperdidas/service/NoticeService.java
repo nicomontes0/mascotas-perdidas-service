@@ -2,6 +2,7 @@ package com.mascotasperdidas.service;
 
 import com.mascotasperdidas.controller.model.NoticeRequestBody;
 import com.mascotasperdidas.model.Notice;
+import com.mascotasperdidas.model.NoticeDTO;
 import com.mascotasperdidas.model.enums.ReportStatus;
 import com.mascotasperdidas.model.filters.Filter;
 import com.mascotasperdidas.model.filters.FilterBuilder;
@@ -25,11 +26,13 @@ public class NoticeService {
     private final NoticeRepository noticeRepository;
     private final ConversionService conversionService;
     private final NoticeImageService noticeImageService;
+    private final TokenService tokenService;
 
-    public NoticeService(NoticeRepository noticeRepository, ConversionService conversionService, NoticeImageService noticeImageService) {
+    public NoticeService(NoticeRepository noticeRepository, ConversionService conversionService, NoticeImageService noticeImageService, TokenService tokenService) {
         this.noticeRepository = noticeRepository;
         this.conversionService = conversionService;
         this.noticeImageService = noticeImageService;
+        this.tokenService = tokenService;
     }
 
     public Page<Notice> get(Map<String, String> params, Pageable pageable) {
@@ -51,25 +54,27 @@ public class NoticeService {
 
     @Transactional
     public void update(UUID id, NoticeRequestBody noticeRequestBody, List<MultipartFile> newImages) {
-        checkTokenIfIsCorrect();
         Notice existingNotice = getNotice(id);
         existingNotice.update(noticeRequestBody);
         noticeRepository.save(existingNotice);
-        if (!newImages.isEmpty()) {
+        if (newImages != null && !newImages.isEmpty()) {
             //TODO QUE HACEMOS CON IMAGENES ANTERIORES
             newImages.forEach(image -> noticeImageService.create(existingNotice, image));
         }
     }
 
     @Transactional
-    public UUID create(NoticeRequestBody noticeRequestBody, List<MultipartFile> images) {
+    public NoticeDTO create(NoticeRequestBody noticeRequestBody, List<MultipartFile> images) {
         Notice notice = createNotice(noticeRequestBody);
-        if (!images.isEmpty()) {
+        if (images != null && !images.isEmpty()) {
             images.forEach(image -> noticeImageService.create(notice, image));
         }
-        generateToken();
+        String jwt = tokenService.generateTokenForNotice(notice.getId());
         sendNotification();
-        return notice.getId();
+        return NoticeDTO.builder()
+                .noticeId(notice.getId())
+                .token(jwt)
+                .build();
     }
 
     private Notice createNotice(NoticeRequestBody noticeRequestBody) {
@@ -78,21 +83,12 @@ public class NoticeService {
 
     @Transactional
     public void resolve(UUID id) {
-        checkTokenIfIsCorrect();
         Notice notice = getNotice(id);
         notice.setStatus(ReportStatus.resuelto);
         noticeRepository.save(notice);
     }
 
-    private void generateToken() {
-        //TODO
-    }
-
     private void sendNotification() {
-        //TODO
-    }
-
-    private void checkTokenIfIsCorrect() {
         //TODO
     }
 }

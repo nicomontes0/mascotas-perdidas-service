@@ -26,3 +26,11 @@ cloudinary:
   name: "dtlfboijw"
   key: ${CLOUDINARY_KEY}
   api_secret: ${CLOUDINARY_API_SECRET}
+
+security:
+  jwt:
+    secret: ${JWT_SECRET}
+    issuer: mascotas-perdidas
+    ttl-seconds: 2592000
+  token:
+    pepper: ${TOKEN_PEPPER}
