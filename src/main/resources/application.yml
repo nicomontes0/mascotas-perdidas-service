@@ -2,7 +2,7 @@ spring:
     application:
         name: mascotas-perdidas-service
     datasource:
-      url: jdbc:postgresql://aws-1-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require
+      url: jdbc:postgresql://${DATABASE_URL}?sslmode=require
       username: ${USER}
       password: ${PASSWORD}
       driver-class-name: org.postgresql.Driver
