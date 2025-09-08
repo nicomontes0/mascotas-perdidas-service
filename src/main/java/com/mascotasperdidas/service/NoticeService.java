@@ -27,12 +27,14 @@ public class NoticeService {
     private final ConversionService conversionService;
     private final NoticeImageService noticeImageService;
     private final TokenService tokenService;
+    private final EmailService emailService;
 
-    public NoticeService(NoticeRepository noticeRepository, ConversionService conversionService, NoticeImageService noticeImageService, TokenService tokenService) {
+    public NoticeService(NoticeRepository noticeRepository, ConversionService conversionService, NoticeImageService noticeImageService, TokenService tokenService, EmailService emailService) {
         this.noticeRepository = noticeRepository;
         this.conversionService = conversionService;
         this.noticeImageService = noticeImageService;
         this.tokenService = tokenService;
+        this.emailService = emailService;
     }
 
     public Page<Notice> get(Map<String, String> params, Pageable pageable) {
@@ -70,11 +72,14 @@ public class NoticeService {
             images.forEach(image -> noticeImageService.create(notice, image));
         }
         String jwt = tokenService.generateTokenForNotice(notice.getId());
-        sendNotification();
-        return NoticeDTO.builder()
+        NoticeDTO noticeDTO = NoticeDTO.builder()
                 .noticeId(notice.getId())
+                .title(notice.getTitle())
+                .contactInfo(notice.getContactInfo())
                 .token(jwt)
                 .build();
+        emailService.sendEmailForNotice(noticeDTO);
+        return noticeDTO;
     }
 
     private Notice createNotice(NoticeRequestBody noticeRequestBody) {
@@ -88,7 +93,4 @@ public class NoticeService {
         noticeRepository.save(notice);
     }
 
-    private void sendNotification() {
-        //TODO
-    }
 }

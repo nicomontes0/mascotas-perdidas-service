@@ -11,6 +11,19 @@ spring:
         minimum-idle: 2
         idle-timeout: 600000
         connection-timeout: 30000
+    mail:
+      host: smtp.gmail.com
+      port: 587
+      username: ${EMAIL}
+      password: ${EMAIL_PASSWORD}
+      default-encoding: UTF-8
+      properties:
+        mail:
+          smtp:
+            auth: true
+            starttls:
+              enable: true
+          debug: true
     jpa:
       hibernate:
         ddl-auto: validate
