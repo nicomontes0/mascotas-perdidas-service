@@ -3,6 +3,7 @@ package com.mascotasperdidas.model;
 import com.mascotasperdidas.controller.model.NoticeRequestBody;
 import com.mascotasperdidas.model.enums.ReportStatus;
 import com.mascotasperdidas.model.enums.NoticeType;
+import com.mascotasperdidas.model.enums.Sizes;
 import com.mascotasperdidas.model.enums.Species;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -65,6 +66,26 @@ public class Notice {
     @JdbcType(PostgreSQLEnumJdbcType.class)
     @Column(name = "report_type", nullable = false, columnDefinition = "report_type_enum")
     private NoticeType noticeType;
+
+    @Column(columnDefinition = "text")
+    private String name;
+
+    @Column(columnDefinition = "text")
+    private String race;
+
+    @Column(columnDefinition = "text")
+    private String color;
+
+    @Column(columnDefinition = "INTEGER")
+    private int age;
+
+    @Column(columnDefinition = "text")
+    private String zone;
+
+    @Enumerated(EnumType.STRING)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    @Column(name="size_enum")
+    private Sizes size;
 
     @Enumerated(EnumType.STRING)
     @JdbcType(PostgreSQLEnumJdbcType.class)
