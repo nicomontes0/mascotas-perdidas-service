@@ -20,7 +20,7 @@ public class NoticeRequestBody {
     private String name;
     private String race;
     private String color;
-    private int age;
+    private Integer age;
     private String zone;
     private String size;
     private Map<String, String> contactInfo;
@@ -36,7 +36,6 @@ public class NoticeRequestBody {
                 .race(race)
                 .color(color)
                 .age(age)
-                .zone(zone)
                 .size(Sizes.valueOf(size))
                 .contactInfo(contactInfo)
                 .build();

@@ -77,14 +77,11 @@ public class Notice {
     private String color;
 
     @Column(columnDefinition = "INTEGER")
-    private int age;
-
-    @Column(columnDefinition = "text")
-    private String zone;
+    private Integer age;
 
     @Enumerated(EnumType.STRING)
     @JdbcType(PostgreSQLEnumJdbcType.class)
-    @Column(name="size_enum")
+    @Column(columnDefinition="size_enum")
     private Sizes size;
 
     @Enumerated(EnumType.STRING)
