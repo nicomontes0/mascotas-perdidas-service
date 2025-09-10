@@ -5,17 +5,25 @@ import com.mascotasperdidas.model.Notice;
 import com.mascotasperdidas.model.enums.NoticeType;
 import com.mascotasperdidas.model.enums.Sizes;
 import com.mascotasperdidas.model.enums.Species;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import org.springframework.lang.NonNull;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.Map;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Validated
 public class NoticeRequestBody {
+    @NotBlank(message = "title es obligatorio")
     private String title;
+    @NotBlank(message = "description es obligatorio")
     private String description;
+    @NotBlank(message = "specie es obligatorio")
     private String specie;
     private String location;
+    @NotBlank(message = "noticeType es obligatorio")
     private String noticeType;
     private String name;
     private String race;
@@ -36,7 +44,7 @@ public class NoticeRequestBody {
                 .race(race)
                 .color(color)
                 .age(age)
-                .size(Sizes.valueOf(size))
+                .size(size != null ? Sizes.valueOf(size) : null)
                 .contactInfo(contactInfo)
                 .build();
     }

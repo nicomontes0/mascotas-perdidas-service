@@ -7,6 +7,8 @@ import com.mascotasperdidas.model.Notice;
 import com.mascotasperdidas.model.NoticeDTO;
 import com.mascotasperdidas.service.NoticeService;
 import com.mascotasperdidas.service.TokenService;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static com.mascotasperdidas.utils.JwtUtils.extractJwtFromHeader;
 
@@ -41,10 +44,12 @@ public class NoticeController {
     private static final Set<String> nonFilterKeys = Set.of("page", "size", "sort");
     private final NoticeService noticeService;
     private final TokenService tokenService;
+    private final Validator validator;
 
-    public NoticeController(NoticeService noticeService, TokenService tokenService) {
+    public NoticeController(NoticeService noticeService, TokenService tokenService, Validator validator) {
         this.noticeService = noticeService;
         this.tokenService = tokenService;
+        this.validator = validator;
     }
 
     @GetMapping
@@ -69,7 +74,7 @@ public class NoticeController {
     }
 
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Void> updateNotice(
+    public ResponseEntity<?> updateNotice(
             @RequestHeader("Authorization") String authorization,
             @PathVariable("id") UUID id,
             @RequestPart("notice") String noticeJson,
@@ -83,14 +88,14 @@ public class NoticeController {
             noticeService.update(id, createNoticeRequestBody(noticeJson), newImages);
             log.info("Se han modificado los datos del notice: {}", id);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (JsonProcessingException e) {
-            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
 
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<NoticeDTO> createNotice(
+    public ResponseEntity<?> createNotice(
             @RequestPart("notice") String noticeJson,
             @RequestPart(value = "images", required = false) List<MultipartFile> images
     ) {
@@ -99,8 +104,8 @@ public class NoticeController {
             NoticeDTO response = noticeService.create(createNoticeRequestBody(noticeJson), images);
             log.info("Se ha creado el notice {}", response);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (JsonProcessingException e) {
-            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
@@ -127,13 +132,24 @@ public class NoticeController {
         return tokenService.validateTokenAndOwnership(extractJwtFromHeader(authorization));
     }
 
-    private NoticeRequestBody createNoticeRequestBody(String noticeJson) throws JsonProcessingException {
+    private NoticeRequestBody createNoticeRequestBody(String noticeJson) throws JsonProcessingException, IllegalArgumentException {
         ObjectMapper mapper = new ObjectMapper();
+        NoticeRequestBody body;
         try {
-            return mapper.readValue(noticeJson, NoticeRequestBody.class);
+            body = mapper.readValue(noticeJson, NoticeRequestBody.class);
         } catch (JsonProcessingException e) {
             log.error(e.getMessage());
             throw e;
         }
+
+        Set<ConstraintViolation<NoticeRequestBody>> violations = validator.validate(body);
+        if (!violations.isEmpty()) {
+            String errorMsg = violations.stream()
+                    .map(ConstraintViolation::getMessage)
+                    .collect(Collectors.joining(", "));
+            throw new IllegalArgumentException("Error de validación: " + errorMsg);
+        }
+
+        return body;
     }
 }
