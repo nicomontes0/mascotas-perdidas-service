@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -54,14 +55,18 @@ public class TokenService {
         return token;
     }
 
-    public boolean validateTokenAndOwnership(String jwtToken) {
+    public boolean validateTokenAndOwnership(String jwtToken, UUID id) {
         try {
             Jws<Claims> parsed = jwtConfig.parseToken(jwtToken);
             Claims c = parsed.getBody();
             String jti = c.getId();
-            String noticeId = c.get("noticeId", String.class);
+            UUID noticeId = UUID.fromString(c.get("noticeId", String.class));
 
-            List<NoticeToken> candidates = tokenRepo.findByNoticeIdAndRevokedAtIsNull(UUID.fromString(noticeId));
+            if (!noticeId.equals(id)) {
+                return false;
+            }
+
+            List<NoticeToken> candidates = tokenRepo.findByNoticeIdAndRevokedAtIsNull(noticeId);
             String toMatch = jti + pepper;
             for (NoticeToken nt : candidates) {
                 if (passwordEncoder.matches(toMatch, nt.getJtiHash())) {

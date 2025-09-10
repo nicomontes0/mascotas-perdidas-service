@@ -80,7 +80,7 @@ public class NoticeController {
             @RequestPart("notice") String noticeJson,
             @RequestPart(value = "newImages", required = false) List<MultipartFile> newImages
     ) {
-        if (!isTokenValid(authorization)) {
+        if (!isTokenValid(authorization, id)) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
         log.info("Se llama al servicio de actualización de un notice con id {} y body {}", id, noticeJson);
@@ -113,7 +113,7 @@ public class NoticeController {
     public ResponseEntity<Void> resolveNotice(
             @RequestHeader("Authorization") String authorization,
             @PathVariable UUID id) {
-        if (!isTokenValid(authorization)) {
+        if (!isTokenValid(authorization, id)) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
         log.info("Se llama a /api/notices/{}/resolve", id);
@@ -123,13 +123,13 @@ public class NoticeController {
 
     @PostMapping("/{id}/manage")
     public ResponseEntity<?> manageAction(@PathVariable UUID id, @RequestHeader("Authorization") String authorization) {
-        return isTokenValid(authorization) ?
+        return isTokenValid(authorization, id) ?
                 ResponseEntity.ok().build()
                 : ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
-    private boolean isTokenValid(String authorization) {
-        return tokenService.validateTokenAndOwnership(extractJwtFromHeader(authorization));
+    private boolean isTokenValid(String authorization, UUID id) {
+        return tokenService.validateTokenAndOwnership(extractJwtFromHeader(authorization), id);
     }
 
     private NoticeRequestBody createNoticeRequestBody(String noticeJson) throws JsonProcessingException, IllegalArgumentException {
