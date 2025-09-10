@@ -28,7 +28,7 @@ public class ContainsFilter implements Filter{
     public Filter build(String key, List<String> values) {
         return new ContainsFilterBuilder()
                 .key(key)
-                .value("*" + values.get(0) + "*")
+                .value("%" + values.getFirst() + "%")
                 .build();
     }
 
@@ -39,7 +39,7 @@ public class ContainsFilter implements Filter{
         if (!String.class.equals(path.getJavaType())) {
             throw new RuntimeException("El parametro no es string");
         }
-        String pattern = value == null ? "%%" : "%" + value.toLowerCase() + "%";
+        String pattern = value == null ? "%%" : value.toLowerCase();
         return cb.like(cb.lower((Expression<String>) path), pattern);
     }
 }
