@@ -1,5 +1,6 @@
 package com.mascotasperdidas.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.mascotasperdidas.model.enums.ReportReason;
 import com.mascotasperdidas.model.enums.ReportStatus;
 import jakarta.persistence.Column;
@@ -17,6 +18,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -35,10 +38,12 @@ public class UserReport {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reported_report_id", nullable = false)
+    @JoinColumn(name = "reported_report_id", nullable = false, columnDefinition = "uuid")
+    @JsonIgnore
     private Notice reportedNotice;
 
     @Enumerated(EnumType.STRING)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     @Column(columnDefinition = "report_reason_enum")
     private ReportReason reason;
 
@@ -46,6 +51,7 @@ public class UserReport {
     private String details;
 
     @Enumerated(EnumType.STRING)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     @Column(columnDefinition = "report_status_enum")
     private ReportStatus status;
 

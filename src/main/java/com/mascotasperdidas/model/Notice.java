@@ -1,5 +1,6 @@
 package com.mascotasperdidas.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.mascotasperdidas.controller.model.NoticeRequestBody;
 import com.mascotasperdidas.model.enums.ReportStatus;
 import com.mascotasperdidas.model.enums.NoticeType;
@@ -41,6 +42,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Notice {
 
     @Id
