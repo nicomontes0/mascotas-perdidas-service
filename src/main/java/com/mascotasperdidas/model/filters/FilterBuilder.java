@@ -19,7 +19,8 @@ public class FilterBuilder {
         "equals", new EqualsFilter(),
         "in", new InListFilter(),
         "startsWith", new StartsWithFilter(),
-        "contains", new ContainsFilter()
+        "contains", new ContainsFilter(),
+        "composite", new CompositeFilter(this)
     );
 
     public List<Filter> build(Map<String, String> mappedFilters) {
@@ -45,11 +46,17 @@ public class FilterBuilder {
     public Filter buildFilter(String key, List<String> valueSplit) {
         String filterType;
         List<String> values;
-        filterType = valueSplit.getFirst();
-        values = valueSplit.subList(1, valueSplit.size())
-                .stream()
-                .map(FilterBuilder::escapeSpecialCharacters)
-                .collect(Collectors.toList());
+
+        if (isComposite(valueSplit)) {
+            filterType = "composite";
+            values = valueSplit;
+        } else {
+            filterType = valueSplit.getFirst();
+            values = valueSplit.subList(1, valueSplit.size())
+                    .stream()
+                    .map(FilterBuilder::escapeSpecialCharacters)
+                    .collect(Collectors.toList());
+        }
         validate(filterType);
         return filterFactory.get(filterType).build(key, values);
     }
@@ -58,6 +65,10 @@ public class FilterBuilder {
         if (!filterFactory.containsKey(filterType)) {
             throw new IllegalArgumentException("Tipo de filtro invalido: " + filterType);
         }
+    }
+
+    private boolean isComposite(List<String> values) {
+        return values.contains("or") || values.contains("and");
     }
 
     private static String escapeSpecialCharacters(String value) {
