@@ -131,18 +131,98 @@ https://mascotas-perdidas-service.onrender.com/api
 ### 🔍 Avisos (Notices)
 
 #### GET /api/notices
-Obtiene una lista paginada de avisos con filtros opcionales.
+Obtiene una lista paginada de avisos con filtros opcionales avanzados.
 
-**Parámetros de Query:**
+**Parámetros de Paginación:**
 - `page` (int): Número de página (default: 0)
 - `size` (int): Tamaño de página (default: 20)
 - `sort` (string): Campo de ordenamiento (default: id,desc)
-- `title` (string): Filtrar por título
-- `specie` (string): Filtrar por especie (perro, gato, otro)
-- `noticeType` (string): Filtrar por tipo (perdido, encontrado)
-- `status` (string): Filtrar por estado (abierto, resuelto)
-- `location` (string): Filtrar por ubicación
-- `size` (string): Filtrar por tamaño (pequeño, mediano, grande)
+
+**Sistema de Filtros Avanzados:**
+
+El sistema soporta múltiples tipos de filtros que se pueden combinar usando operadores lógicos. La estructura general de un filtro es:
+
+```
+campo=tipo_filtro,valor1,valor2,...
+```
+
+**Tipos de Filtros Disponibles:**
+
+1. **equals** - Búsqueda exacta
+   ```
+   campo=equals,valor
+   ```
+   Ejemplo: `specie=equals,perro`
+
+2. **contains** - Contiene texto (búsqueda parcial, case-insensitive)
+   ```
+   campo=contains,texto
+   ```
+   Ejemplo: `title=contains,perro perdido`
+
+3. **startsWith** - Comienza con texto (case-insensitive)
+   ```
+   campo=startsWith,texto
+   ```
+   Ejemplo: `location=startsWith,centro`
+
+4. **in** - Coincide con cualquiera de los valores
+   ```
+   campo=in,valor1,valor2,valor3
+   ```
+   Ejemplo: `specie=in,perro,gato`
+
+5. **range** - Rango de valores (para números y fechas)
+   ```
+   campo=range,desde,hasta
+   ```
+   Ejemplo: `age=range,1,5` o `createdAt=range,2024-01-01,2024-12-31`
+
+6. **composite** - Combinación de filtros con operadores lógicos
+   ```
+   campo=tipo1,valor1,and,campo2,tipo2,valor2
+   campo=tipo1,valor1,or,campo2,tipo2,valor2
+   ```
+
+**Campos Filtrables:**
+
+- `title` (string): Título del aviso
+- `description` (string): Descripción del aviso
+- `specie` (enum): Especie - valores: `perro`, `gato`, `otro`
+- `noticeType` (enum): Tipo de aviso - valores: `perdido`, `encontrado`
+- `status` (enum): Estado del aviso - valores: `abierto`, `resuelto`
+- `location` (string): Ubicación
+- `name` (string): Nombre de la mascota
+- `race` (string): Raza
+- `color` (string): Color
+- `age` (integer): Edad en años
+- `size` (enum): Tamaño - valores: `pequeño`, `mediano`, `grande`
+- `createdAt` (datetime): Fecha de creación
+
+**Ejemplos de Uso:**
+
+```bash
+# Buscar perros perdidos
+GET /api/notices?specie=equals,perro&noticeType=equals,perdido
+
+# Buscar avisos que contengan "labrador" en el título
+GET /api/notices?title=contains,labrador
+
+# Buscar mascotas de tamaño mediano o grande
+GET /api/notices?size=in,mediano,grande
+
+# Buscar avisos creados en un rango de fechas
+GET /api/notices?createdAt=range,2024-01-01,2024-12-31
+
+# Buscar perros o gatos perdidos (filtro compuesto)
+GET /api/notices?specie=equals,perro,or,specie,equals,gato&noticeType=equals,perdido
+
+# Buscar avisos que empiecen con "Perro" en el título Y sean de estado abierto
+GET /api/notices?title=startsWith,Perro,and,status,equals,abierto
+
+# Combinación de filtros simples
+GET /api/notices?specie=equals,perro&status=equals,abierto&location=contains,centro
+```
 
 **Respuesta:**
 ```json
