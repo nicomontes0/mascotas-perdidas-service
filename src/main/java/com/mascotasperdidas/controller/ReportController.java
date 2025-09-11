@@ -59,6 +59,7 @@ public class ReportController {
         log.info("Se llama a crear /api/reports con body {}", reportRequestBody);
         Notice noticeFromReport = noticeService.get(reportRequestBody.getNoticeId());
         UserReport report = userReportService.create(reportRequestBody.toDomain(noticeFromReport));
+        noticeService.updateReportedNotice(noticeFromReport);
         return ResponseEntity.status(HttpStatus.CREATED).body(report.getId());
     }
 

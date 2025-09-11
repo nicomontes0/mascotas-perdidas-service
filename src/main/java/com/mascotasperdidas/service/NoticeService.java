@@ -65,6 +65,12 @@ public class NoticeService {
         }
     }
 
+    public void updateReportedNotice(Notice notice) {
+        notice.setIsReported(true);
+        noticeRepository.save(notice);
+        log.info("Actualizando notice a Isreported {}", notice);
+    }
+
     @Transactional
     public NoticeDTO create(NoticeRequestBody noticeRequestBody, List<MultipartFile> images) {
         Notice notice = createNotice(noticeRequestBody);
