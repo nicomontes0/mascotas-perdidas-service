@@ -50,5 +50,9 @@ security:
   token:
     pepper: ${TOKEN_PEPPER}
 
+ui:
+  url: ${UI_URL}
+  name: ${UI_NAME}
+
 server:
   port: ${PORT:10000}

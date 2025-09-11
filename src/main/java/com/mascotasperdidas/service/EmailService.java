@@ -19,6 +19,12 @@ public class EmailService {
     @Value("${spring.mail.username}")
     private String username;
 
+    @Value("${ui.url}")
+    private String siteUrl;
+
+    @Value("${ui.name}")
+    private String siteName;
+
     @Autowired
     private JavaMailSender mailSender;
 
@@ -29,13 +35,13 @@ public class EmailService {
             return;
         }
         String body = String.format("Tu aviso fue creado correctamente. " +
-                        "Ingresa <a href=\"app.com/%s/%s\" target=\"_blank\">aquí</a> para poder modificarlo."
+                        "Ingresa <a href=\"" + siteUrl + "/%s/%s\" target=\"_blank\">aquí</a> para poder modificarlo."
                 , notice.getNoticeId()
                 , notice.getToken());
         try {
             this.send(
                     email,
-                    String.format("Aviso %s creado", notice.getTitle()),
+                    String.format("%s - Aviso %s creado", siteName, notice.getTitle()),
                     body);
         } catch (MessagingException e) {
             log.error(e.getMessage());
